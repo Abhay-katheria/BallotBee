@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BallotBee — Modern Polling & Decision Platform</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="nav-container">
+            <div class="brand">
+                <span class="brand-icon">
+                    <svg class="brand-logo" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polygon points="12 2, 21 7.2, 21 16.8, 12 22, 3 16.8, 3 7.2" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                        <polyline points="7.5 12, 10.5 15, 16.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="16.5" cy="9" r="1.5" fill="#f59e0b" stroke="none"/>
+                    </svg>
+                </span>
+                <span class="brand-name"><span class="brand-name-bold">Ballot</span><span class="brand-name-light">Bee</span></span>
+            </div>
+
+            <nav class="nav-menu">
+                <button type="button" class="nav-link active" id="nav-polls">Polls</button>
+                <button type="button" class="nav-link hidden" id="nav-my-votes">My Votes</button>
+                <button type="button" class="nav-link hidden" id="nav-admin">Admin Dashboard</button>
+            </nav>
+
+            <div class="auth-bar">
+                <div class="user-info hidden" id="user-info">
+                    <span class="user-avatar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                    </span>
+                    <span class="user-name" id="user-display-name">User</span>
+                    <span class="user-role-badge" id="user-role-badge">voter</span>
+                </div>
+                <button type="button" class="btn btn-secondary" id="btn-login">Sign In</button>
+                <button type="button" class="btn btn-primary" id="btn-register">Register</button>
+                <button type="button" class="btn btn-danger hidden" id="btn-logout">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Toast Notification Area -->
+        <div class="toast-container" id="toast-container"></div>
+
+        <!-- Polls View -->
+        <section class="view-section active" id="view-polls">
+            <div class="section-header polls-header-wrap">
+                <div>
+                    <h1 class="section-title">Community Polls</h1>
+                    <p class="section-subtitle">Cast your secure vote or check real-time results.</p>
+                </div>
+                <div class="header-actions-wrap">
+                    <div class="search-container">
+                        <span class="search-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </span>
+                        <input type="text" id="poll-search-input" name="search" class="search-input" placeholder="Search polls..." autocomplete="off" aria-label="Search polls">
+                        <button type="button" class="search-clear-btn hidden" id="btn-search-clear" title="Clear search">✕</button>
+                    </div>
+                    <div class="filter-controls">
+                        <button type="button" class="filter-btn active" data-filter="all">All</button>
+                        <button type="button" class="filter-btn" data-filter="active">Active</button>
+                        <button type="button" class="filter-btn" data-filter="closed">Closed</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Stats Bar -->
+            <div class="stats-bar" id="polls-stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">Active Polls</span>
+                    <span class="stat-value" id="stat-active-polls">0</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Votes Cast</span>
+                    <span class="stat-value" id="stat-total-votes">0</span>
+                </div>
+                <div class="stat-spacer"></div>
+                <div class="stat-sync" title="Auto-refresh active (5s interval)">
+                    <span class="sync-dot"></span>
+                    <span class="sync-label">Live Sync</span>
+                </div>
+            </div>
+
+            <div class="polls-grid" id="polls-grid">
+                <!-- Poll cards rendered dynamically via JS -->
+            </div>
+
+            <div class="empty-state hidden" id="polls-empty">
+                <div class="empty-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                </div>
+                <h3>No polls found</h3>
+                <p>There are no polls matching the selected filter or search query.</p>
+            </div>
+        </section>
+
+        <!-- My Votes View -->
+        <section class="view-section hidden" id="view-my-votes">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">My Voting History</h1>
+                    <p class="section-subtitle">View the polls you have participated in and your chosen selections.</p>
+                </div>
+            </div>
+
+            <div class="my-votes-grid" id="my-votes-grid">
+                <!-- My Votes rendered dynamically via JS -->
+            </div>
+
+            <div class="empty-state hidden" id="my-votes-empty">
+                <div class="empty-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+                </div>
+                <h3>No votes cast yet</h3>
+                <p>You haven't participated in any polls yet. Browse Community Polls to cast your vote!</p>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard View -->
+        <section class="view-section" id="view-admin">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Admin Dashboard</h1>
+                    <p class="section-subtitle">Create new community polls and manage active voting sessions.</p>
+                </div>
+            </div>
+
+            <div class="admin-grid">
+                <!-- Create Poll Card -->
+                <div class="card admin-card">
+                    <h2 class="card-title">Create a New Poll</h2>
+                    <form class="admin-form" id="create-poll-form">
+                        <div class="form-group">
+                            <label for="poll-title">Poll Title <span class="required">*</span></label>
+                            <input type="text" id="poll-title" name="title" class="form-input" placeholder="e.g., Favorite Framework 2026" minlength="3" maxlength="255" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="poll-desc">Description (Optional)</label>
+                            <textarea id="poll-desc" name="description" class="form-input" rows="3" placeholder="Provide extra context for voters..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="poll-duration">Voting Duration (Minutes)</label>
+                                <input type="number" id="poll-duration" name="duration_minutes" class="form-input" min="1" placeholder="e.g., 60 (Blank for no timer)">
+                            </div>
+                            <div class="form-group">
+                                <label for="poll-auto-delete">Auto-Delete After Close (Hours)</label>
+                                <input type="number" id="poll-auto-delete" name="auto_delete_hours" class="form-input" min="1" value="24" placeholder="Default: 24">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Voting Options <span class="required">* (At least 2)</span></label>
+                            <div class="options-builder" id="options-builder">
+                                <!-- Option rows dynamically added -->
+                            </div>
+                            <button type="button" class="btn btn-outline" id="btn-add-option">+ Add Option</button>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" id="btn-submit-poll">Create & Publish Poll</button>
+                    </form>
+                </div>
+
+                <!-- Manage Existing Polls Card -->
+                <div class="card admin-card">
+                    <h2 class="card-title">Manage Polls</h2>
+                    <div class="admin-polls-list" id="admin-polls-list">
+                        <!-- Poll list with close actions rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Authentication Modal -->
+    <div class="modal hidden" id="auth-modal">
+        <div class="modal-backdrop" id="auth-modal-backdrop"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-tabs">
+                    <button type="button" class="modal-tab active" id="tab-login">Sign In</button>
+                    <button type="button" class="modal-tab" id="tab-register">Register</button>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-auth">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Login Form -->
+                <form class="auth-form" id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" name="username" class="form-input" autocomplete="username" placeholder="Enter your username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" name="password" class="form-input" autocomplete="current-password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                    <div class="auth-switch">
+                        <span>Don't have an account?</span>
+                        <button type="button" class="link-btn" id="link-to-register">Create one now</button>
+                    </div>
+                </form>
+
+                <!-- Register Form -->
+                <form class="auth-form hidden" id="register-form">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" name="username" class="form-input" autocomplete="username" placeholder="Choose a username (min 3 chars)" minlength="3" maxlength="50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" name="password" class="form-input" autocomplete="new-password" placeholder="Create a password (min 6 chars)" minlength="6" maxlength="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm-password">Confirm Password</label>
+                        <input type="password" id="register-confirm-password" name="confirm_password" class="form-input" autocomplete="new-password" placeholder="Re-enter password" minlength="6" maxlength="100" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Register Account</button>
+                    <div class="auth-switch">
+                        <span>Already registered?</span>
+                        <button type="button" class="link-btn" id="link-to-login">Sign in here</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Results Modal -->
+    <div class="modal hidden" id="results-modal">
+        <div class="modal-backdrop" id="results-modal-backdrop"></div>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <div>
+                    <div class="results-header-tag">
+                        <span class="badge" id="results-badge">Active</span>
+                        <span class="results-votes-count" id="results-total-votes">0 total votes</span>
+                    </div>
+                    <h2 class="results-title" id="results-title">Poll Results</h2>
+                    <p class="results-desc" id="results-desc"></p>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-results">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="chart-section">
+                    <div class="chart-controls">
+                        <button type="button" class="chart-type-btn active" id="btn-chart-bar" data-chart="bar">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                            <span>Bar Chart</span>
+                        </button>
+                        <button type="button" class="chart-type-btn" id="btn-chart-doughnut" data-chart="doughnut">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                            <span>Doughnut Chart</span>
+                        </button>
+                    </div>
+                    <div class="chart-canvas-container">
+                        <canvas id="results-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="results-container" id="results-container">
+                    <!-- Option percentage bars dynamically rendered -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-results-dismiss">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Announcement Modal -->
+    <div class="modal hidden" id="winner-modal">
+        <div class="modal-backdrop" id="winner-modal-backdrop"></div>
+        <div class="modal-dialog modal-winner">
+            <button type="button" class="modal-close-btn winner-modal-close" id="btn-close-winner" title="Close">✕</button>
+            <div class="winner-modal-body">
+                <div class="winner-trophy-badge">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                </div>
+                <h2 class="winner-headline" id="winner-headline">Poll Concluded!</h2>
+                <h3 class="winner-poll-title" id="winner-poll-title">Poll Title</h3>
+
+                <div class="winner-card" id="winner-card">
+                    <!-- Winner details, ties, or zero-vote state dynamically rendered -->
+                </div>
+
+                <div class="winner-actions">
+                    <button type="button" class="btn btn-primary" id="btn-winner-view-results">View Live Charts & Results</button>
+                    <button type="button" class="btn btn-secondary" id="btn-winner-dismiss">Dismiss</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div class="modal hidden" id="confirm-modal">
+        <div class="modal-backdrop" id="confirm-modal-backdrop"></div>
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-header">
+                <h3 class="confirm-title" id="confirm-title">Confirm Action</h3>
+                <button type="button" class="modal-close-btn" id="btn-close-confirm">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-message" id="confirm-message">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-confirm-cancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries via CDN (No inline code) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
